@@ -1,0 +1,159 @@
+# phonics-game
+自然拼读闯关游戏
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>自然拼读闯关系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:linear-gradient(180deg,#FFF8E7,#E3F2FD,#FCE4EC);min-height:100vh;padding:10px;padding-bottom:70px}
+.wrap{width:100%;max-width:420px;margin:0 auto}
+.home-header{text-align:center;margin-bottom:15px;padding-top:10px}
+.home-header h1{color:#E65100;font-size:1.5rem;text-shadow:2px 2px 0 #FFE0B2}
+.home-header p{color:#78909C;font-size:.8rem;margin-top:4px}
+.week-card{background:rgba(255,255,255,.9);border-radius:16px;padding:15px;margin-bottom:12px;box-shadow:0 4px 15px rgba(0,0,0,.08)}
+.week-title{font-size:1.1rem;color:#5D4037;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.week-title .badge{background:linear-gradient(135deg,#FF8A65,#FF7043);color:white;padding:3px 10px;border-radius:12px;font-size:.75rem}
+.lesson-row{display:flex;gap:8px;flex-wrap:wrap}
+.lesson-btn{flex:1;min-width:120px;padding:10px;border:none;border-radius:12px;background:#ECEFF1;color:#546E7A;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s;text-align:left;display:flex;align-items:center;gap:8px}
+.lesson-btn:hover{background:#CFD8DC}
+.lesson-btn.done{background:linear-gradient(135deg,#66BB6A,#43A047);color:white}
+.lesson-btn.locked{opacity:.5;cursor:not-allowed}
+.lesson-btn .status{font-size:1.2rem}
+.mode-page{display:none}
+.mode-page.active{display:block}
+.mode-header{text-align:center;margin-bottom:15px}
+.mode-header h2{color:#E65100;font-size:1.3rem}
+.mode-header p{color:#78909C;font-size:.8rem;margin-top:4px}
+.mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:15px}
+.mode-card{background:rgba(255,255,255,.9);border-radius:16px;padding:15px;text-align:center;cursor:pointer;transition:all .2s;border:3px solid transparent;box-shadow:0 4px 15px rgba(0,0,0,.08)}
+.mode-card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.12)}
+.mode-card .icon{font-size:2rem;margin-bottom:5px}
+.mode-card .name{font-size:.85rem;font-weight:700;color:#5D4037}
+.mode-card .desc{font-size:.7rem;color:#78909C;margin-top:3px}
+.game-page{display:none}
+.game-page.active{display:block}
+.game-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.game-header .back-btn{background:#ECEFF1;border:none;padding:6px 14px;border-radius:20px;color:#546E7A;font-size:.8rem;cursor:pointer}
+.game-header .info{text-align:right;font-size:.75rem;color:#78909C}
+.stats{display:flex;gap:8px;justify-content:center;margin-bottom:8px}
+.stat{background:linear-gradient(135deg,#FFE082,#FFCA28);border-radius:12px;padding:6px 12px;color:#5D4037;font-weight:700;font-size:.85rem;min-width:70px;text-align:center}
+.target{background:linear-gradient(90deg,#E8F5E9,#C8E6C9);border-radius:12px;padding:12px;text-align:center;border:2px dashed #66BB6A;margin-bottom:10px}
+.target .label{color:#2E7D32;font-weight:700;font-size:.8rem}
+.target .word{color:#E65100;font-size:1.4rem;font-weight:700;letter-spacing:1px;margin:4px 0}
+.target .sentence{color:#5D4037;font-size:.85rem;margin:4px 0;font-style:italic}
+.target button{padding:6px 16px;border:none;border-radius:20px;background:linear-gradient(135deg,#FF8A65,#FF7043);color:white;font-weight:700;font-size:.8rem;cursor:pointer;margin:0 3px}
+.board{background:rgba(255,255,255,.9);border-radius:16px;padding:10px;box-shadow:0 8px 30px rgba(0,0,0,.1),inset 0 0 0 3px #FFE082}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.card{aspect-ratio:1;border-radius:12px;display:flex;flex-direction:column;justify-content:center;align-items:center;cursor:pointer;transition:all .2s;box-shadow:0 3px 8px rgba(0,0,0,.15);user-select:none;overflow:hidden;position:relative}
+.card:active{transform:scale(.9)}
+.card .card-img{width:100%;height:60%;object-fit:cover;border-radius:8px 8px 0 0}
+.card .card-emoji{font-size:2.5rem}
+.card .txt{font-size:.65rem;color:rgba(255,255,255,.95);font-weight:700;margin-top:2px;text-shadow:0 1px 2px rgba(0,0,0,.2);padding:0 4px;text-align:center}
+.red{background:linear-gradient(135deg,#EF5350,#E53935)}
+.orange{background:linear-gradient(135deg,#FF8A65,#F4511E)}
+.yellow{background:linear-gradient(135deg,#FFD54F,#FFB300)}
+.green{background:linear-gradient(135deg,#66BB6A,#43A047)}
+.blue{background:linear-gradient(135deg,#42A5F5,#1E88E5)}
+.purple{background:linear-gradient(135deg,#AB47BC,#8E24AA)}
+.pink{background:linear-gradient(135deg,#F06292,#D81B60)}
+.teal{background:linear-gradient(135deg,#26C6DA,#0097A7)}
+.card.matched{animation:pop .5s ease forwards}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(0);opacity:0}}
+.card.shake{animation:shake .4s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+.card.selected{transform:scale(1.05);box-shadow:0 0 0 3px #FFD54F,0 5px 15px rgba(0,0,0,.2)}
+.sentence-quiz{display:none;background:rgba(255,255,255,.9);border-radius:16px;padding:15px;margin-bottom:10px;box-shadow:0 4px 15px rgba(0,0,0,.08)}
+.sentence-quiz.active{display:block}
+.sentence-text{font-size:1rem;color:#5D4037;line-height:1.8;text-align:center;margin-bottom:15px}
+.sentence-text .blank{display:inline-block;min-width:80px;border-bottom:2px dashed #FF8A65;padding:0 5px;text-align:center;color:#E65100;font-weight:700}
+.sentence-options{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.sentence-options button{padding:8px 16px;border:2px solid #FF8A65;border-radius:20px;background:white;color:#E65100;font-weight:700;font-size:.9rem;cursor:pointer;transition:all .2s}
+.sentence-options button:hover{background:#FF8A65;color:white}
+.sentence-options button.correct{background:#66BB6A;border-color:#66BB6A;color:white}
+.sentence-options button.wrong{background:#EF5350;border-color:#EF5350;color:white}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);display:flex;justify-content:space-around;padding:8px 0;border-top:1px solid #ECEFF1;z-index:100}
+.nav-item{flex:1;text-align:center;padding:5px;cursor:pointer;color:#78909C;font-size:.7rem;transition:all .2s;border:none;background:none}
+.nav-item.active{color:#FF7043;font-weight:700}
+.nav-item .icon{font-size:1.3rem;display:block;margin-bottom:2px}
+.review-page{display:none;padding-bottom:60px}
+.review-page.active{display:block}
+.review-header{text-align:center;margin-bottom:15px}
+.review-header h2{color:#E65100;font-size:1.3rem}
+.weak-list{background:rgba(255,255,255,.9);border-radius:16px;padding:15px;box-shadow:0 4px 15px rgba(0,0,0,.08)}
+.weak-item{display:flex;align-items:center;gap:12px;padding:10px;border-bottom:1px solid #ECEFF1}
+.weak-item:last-child{border-bottom:none}
+.weak-item .word-img{width:50px;height:50px;border-radius:10px;object-fit:cover}
+.weak-item .word-info{flex:1}
+.weak-item .word-name{font-weight:700;color:#5D4037;font-size:.9rem}
+.weak-item .word-meta{font-size:.75rem;color:#78909C}
+.weak-item .word-status{padding:3px 10px;border-radius:12px;font-size:.7rem;font-weight:700}
+.word-status.new{background:#FFECB3;color:#E65100}
+.word-status.review{background:#FFCCBC;color:#BF360C}
+.word-status.mastered{background:#C8E6C9;color:#2E7D32}
+.empty-state{text-align:center;padding:40px 20px;color:#78909C}
+.empty-state .icon{font-size:3rem;margin-bottom:10px}
+.progress-page{display:none;padding-bottom:60px}
+.progress-page.active{display:block}
+.progress-header{text-align:center;margin-bottom:15px}
+.progress-header h2{color:#E65100;font-size:1.3rem}
+.progress-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:15px}
+.progress-card{background:rgba(255,255,255,.9);border-radius:16px;padding:15px;text-align:center;box-shadow:0 4px 15px rgba(0,0,0,.08)}
+.progress-card .number{font-size:2rem;font-weight:700;color:#FF7043}
+.progress-card .label{font-size:.8rem;color:#78909C;margin-top:4px}
+.progress-bar-bg{background:#ECEFF1;border-radius:10px;height:20px;overflow:hidden;margin:10px 0}
+.progress-bar-fill{background:linear-gradient(90deg,#66BB6A,#43A047);height:100%;border-radius:10px;transition:width .5s ease}
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);display:none;justify-content:center;align-items:center;z-index:1000}
+.overlay.show{display:flex}
+.modal{background:white;border-radius:20px;padding:25px;text-align:center;border:4px solid #FFD54F;width:300px;max-width:90%}
+.modal h2{color:#E65100;font-size:1.3rem;margin-bottom:10px}
+.modal p{color:#5D4037;font-size:.9rem;margin:8px 0}
+.modal .score{font-size:2.5rem;color:#FFB300;font-weight:700;margin:10px 0}
+.modal button{padding:10px 24px;border:none;border-radius:25px;background:linear-gradient(135deg,#66BB6A,#43A047);color:white;font-size:.9rem;font-weight:700;cursor:pointer;margin:5px}
+.modal button.secondary{background:#ECEFF1;color:#546E7A}
+.score-pop{position:fixed;pointer-events:none;font-size:1.5rem;color:#FFD54F;text-shadow:2px 2px 0 #E65100;font-weight:700;z-index:999;animation:up 1s ease forwards}
+@keyframes up{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div id="homePage" class="home-page">
+  <div class="home-header"><h1>🎯 自然拼读闯关系统</h1><p>每周两课，闯关学习，巩固复习</p></div>
+  <div id="weekList"></div>
+</div>
+<div id="modePage" class="mode-page">
+  <div class="mode-header"><h2 id="modeTitle">选择练习模式</h2><p id="modeSubtitle">选择适合你的学习方式</p></div>
+  <div class="mode-grid">
+    <div class="mode-card" onclick="startMode('new')"><div class="icon">🆕</div><div class="name">新课模式</div><div class="desc">学习新单词<br>有提示辅助</div></div>
+    <div class="mode-card" onclick="startMode('review')"><div class="icon">🔄</div><div class="name">巩固模式</div><div class="desc">核心+Extra<br>混合挑战</div></div>
+    <div class="mode-card" onclick="startMode('weak')"><div class="icon">⚠️</div><div class="name">薄弱强化</div><div class="desc">错题本复习<br>答对3次过关</div></div>
+  </div>
+  <div style="text-align:center"><button onclick="showPage('home')" class="back-btn" style="display:inline-block">← 返回首页</button></div>
+</div>
+<div id="gamePage" class="game-page">
+  <div class="game-header"><button class="back-btn" onclick="showPage('mode')">← 返回</button><div class="info"><div id="gameInfo">Week 1 · Lesson 1</div><div id="gameModeName">新课模式</div></div></div>
+  <div class="stats"><div class="stat">得分<br><span id="sc">0</span></div><div class="stat">步数<br><span id="st">0</span></div><div class="stat">连击<br><span id="combo">0</span></div></div>
+  <div class="target"><div class="label">🔊 听发音，找到一样的单词</div><div class="word" id="targetWord">---</div><div class="sentence" id="targetSentence"></div><div style="margin-top:8px"><button onclick="speakTarget()">🔊 播放发音</button><button onclick="showHint()">💡 提示</button></div></div>
+  <div class="sentence-quiz" id="sentenceQuiz"><div class="sentence-text" id="sentenceText"></div><div class="sentence-options" id="sentenceOptions"></div></div>
+  <div class="board"><div class="grid" id="grid"></div></div>
+</div>
+<div id="reviewPage" class="review-page">
+  <div class="review-header"><h2>📚 错题本</h2><p style="color:#78909C;font-size:.8rem">答错的单词会在这里，强化练习直到掌握</p></div>
+  <div class="weak-list" id="weakList"></div>
+</div>
+<div id="progressPage" class="progress-page">
+  <div class="progress-header"><h2>📊 我的进度</h2><p style="color:#78909C;font-size:.8rem">学习报告</p></div>
+  <div class="progress-stats">
+    <div class="progress-card"><div class="number" id="totalWords">0</div><div class="label">已学单词</div></div>
+    <div class="progress-card"><div class="number" id="masteredWords">0</div><div class="label">已掌握</div></div>
+    <div class="progress-card"><div class="number" id="weakWords">0</div><div class="label">需加强</div></div>
+    <div class="progress-card"><div class="number" id="streakDays">1</div><div class="label">连续打卡</div></div>
+  </div>
+  <div class="week-card"><div class="week-title">📈 本周掌握率</div><div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar" style="width:0%"></div></div><p style="text-align:center;color:#78909C;font-size:.8rem;margin-top:5px" id="progressText">0%</p></div>
+</div>
+<div class="overlay" id="overlay"><div class="modal"><h2 id="modalTitle">🎉 恭喜通关！</h2><div class="score" id="modalScore">100</div><p id="modalText">太棒了！全部找对啦！</p><div><button onclick="nextLevel()">继续下一关</button><button class="secondary" onclick="showPage('home')">返回首页</button></div></div></div>
+</div>
+<div class="bottom-nav"><button class="nav-item active" onclick="showPage('home')"><span class="icon">🏠</span><span>首页</span></button><button class="nav-item" onclick="showPage('review')"><span class="icon">📚</span><span>错题本</span></button><button class="nav-item" onclick="showPage('progress')"><span class="icon">📊</span><span>进度</span></button></div>
+<script>
