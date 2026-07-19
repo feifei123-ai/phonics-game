@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>拼读闯关</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,sans-serif;background:linear-gradient(180deg,#FFF8E7,#E3F2FD);min-height:100vh;padding:10px 10px 60px}
+.wrap{max-width:400px;margin:0 auto}
+h1{text-align:center;color:#E65100;font-size:1.5rem;margin:15px 0}
+.card{background:#fff;border-radius:12px;padding:12px;margin:8px 0;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.btn{padding:8px 14px;border:none;border-radius:10px;background:#ECEFF1;color:#546E7A;font-size:.8rem;cursor:pointer;margin:2px}
+.btn:hover{background:#CFD8DC}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:8px}
+.tile{aspect-ratio:1;border-radius:10px;display:flex;flex-direction:column;justify-content:center;align-items:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);transition:.2s}
+.tile:active{transform:scale(.9)}
+.tile img{width:100%;height:55%;object-fit:cover;border-radius:8px 8px 0 0}
+.tile .e{font-size:2rem}
+.tile .t{font-size:.6rem;color:#fff;font-weight:700}
+.c1{background:linear-gradient(135deg,#EF5350,#E53935)}
+.c2{background:linear-gradient(135deg,#FF8A65,#F4511E)}
+.c3{background:linear-gradient(135deg,#FFD54F,#FFB300)}
+.c4{background:linear-gradient(135deg,#66BB6A,#43A047)}
+.c5{background:linear-gradient(135deg,#42A5F5,#1E88E5)}
+.c6{background:linear-gradient(135deg,#AB47BC,#8E24AA)}
+.sel{transform:scale(1.05);box-shadow:0 0 0 3px #FFD54F}
+.match{animation:pop .4s forwards}@keyframes pop{50%{transform:scale(1.15)}100%{transform:scale(0);opacity:0}}
+.shake{animation:sh .3s}@keyframes sh{25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
+.target{background:#E8F5E9;border:2px dashed #66BB6A;border-radius:10px;padding:10px;text-align:center;margin:8px 0}
+.target b{color:#E65100;font-size:1.3rem}
+.stats{display:flex;gap:6px;justify-content:center;margin:6px 0}
+.stats span{background:#FFE082;border-radius:10px;padding:5px 10px;font-weight:700;font-size:.8rem}
+.nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;justify-content:space-around;padding:6px 0;border-top:1px solid #ECEFF1}
+.nav button{border:none;background:none;color:#78909C;font-size:.65rem;cursor:pointer}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div id="p1"><h1>🎯 拼读闯关</h1><div id="list"></div></div>
+<div id="p2" class="hide"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><button class="btn" onclick="show('p1')">←</button><div id="info" style="font-size:.75rem;color:#78909C"></div></div><div class="stats"><span>得分:<b id="sc">0</b></span><span>步数:<b id="st">0</b></span></div><div class="target">找单词: <b id="tw">---</b><button class="btn" onclick="speak(curTarget.w)" style="background:#FF8A65;color:#fff;margin-left:8px">🔊</button></div><div class="card"><div class="grid" id="gd"></div></div></div>
+</div>
+<div class="nav"><button onclick="show('p1')">🏠首页</button><button onclick="show('p1')">📚错题</button><button onclick="show('p1')">📊进度</button></div>
+<script>
+const DATA={w1:{t:"Week1 认识朋友",l:{l1:{t:"人物介绍",c:[{w:"Rosy",e:"👧",i:"girl"},{w:"Tim",e:"👦",i:"boy"},{w:"Billy",e:"🧒",i:"child"},{w:"Miss Jones",e:"👩‍🏫",i:"teacher"}],x:[{w:"cousin",e:"👨‍👩‍👧",i:"family"}]},l2:{t:"数字星期颜色",c:[{w:"one",e:"1️⃣",i:"number 1"},{w:"two",e:"2️⃣",i:"number 2"},{w:"red",e:"🔴",i:"red"},{w:"blue",e:"🔵",i:"blue"}],x:[]}}},w2:{t:"Week2 我的文具",l:{l1:{t:"School Things",c:[{w:"pen",e:"🖊️",i:"pen"},{w:"pencil",e:"✏️",i:"pencil"},{w:"book",e:"📖",i:"book"},{w:"ruler",e:"📏",i:"ruler"}],x:[{w:"train",e:"🚂",i:"toy train"}]}}}};
+let cw,cl,sc=0,st=0,curTarget,selCard,cards=[],mc=0,tp=0,gw=[];
+const CC=['c1','c2','c3','c4','c5','c6'];
+function show(p){['p1','p2'].forEach(x=>document.getElementById(x).classList.add('hide'));document.getElementById(p).classList.remove('hide');if(p==='p1')renderList()}
+function renderList(){let h='';for(let wk in DATA){const w=DATA[wk];h+=`<div class="card"><b>${w.t}</b><div style="margin-top:6px">`;for(let ls in w.l){const l=w.l[ls];h+=`<button class="btn" onclick="start('${wk}','${ls}')">${l.t}</button>`}h+='</div></div>'}document.getElementById('list').innerHTML=h}
+function start(w,l){cw=w;cl=l;sc=0;st=0;mc=0;document.getElementById('sc').textContent='0';document.getElementById('st').textContent='0';const d=DATA[w].l[l];gw=[...d.c,...d.x];if(gw.length>9)gw=gw.slice(0,9);tp=gw.length;document.getElementById('info').textContent=d.t;show('p2');init()}
+function init(){const g=document.getElementById('gd');g.innerHTML='';cards=[];selCard=null;let p=[];for(let w of gw){p.push({...w,id:1});p.push({...w,id:2})}p.sort(()=>Math.random()-.5);p.forEach((it,ix)=>{const c=document.createElement('div'),cl=CC[ix%CC.length];c.className=`tile ${cl}`;c.dataset.w=it.w;const im=document.createElement('img');im.src=`https://source.unsplash.com/200x200/?${encodeURIComponent(it.i||it.w)}`;im.onerror=function(){this.style.display='none';const e=document.createElement('div');e.className='e';e.textContent=it.e;c.appendChild(e)};const t=document.createElement('div');t.className='t';t.textContent=it.w;c.appendChild(im);c.appendChild(t);c.onclick=()=>click(c);g.appendChild(c);cards.push(c)});pick()}
+function pick(){const r=gw.filter(w=>cards.some(c=>c.dataset.w===w.w&&!c.classList.contains('match')));if(r.length===0){alert('🎉 恭喜通关！得分:'+sc);show('p1');return}curTarget=r[Math.floor(Math.random()*r.length)];document.getElementById('tw').textContent=curTarget.w}
+function click(c){if(c.classList.contains('match')||c===selCard)return;if(!selCard){selCard=c;c.classList.add('sel');speak(c.dataset.w)}else{st++;document.getElementById('st').textContent=st;const p=selCard;selCard=null;p.classList.remove('sel');if(p.dataset.w===c.dataset.w){mc++;sc+=10;document.getElementById('sc').textContent=sc;p.classList.add('match');c.classList.add('match');setTimeout(()=>{p.style.visibility='hidden';c.style.visibility='hidden';pick()},400)}else{p.classList.add('shake');c.classList.add('shake');setTimeout(()=>{p.classList.remove('shake');c.classList.remove('shake')},300)}}}
+function speak(t){if('speechSynthesis' in window){window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=0.8;window.speechSynthesis.speak(u)}}
+show('p1');
+</script>
+</body>
+</html>
